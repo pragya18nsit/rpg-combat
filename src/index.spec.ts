@@ -1,7 +1,9 @@
-import { systemUnderTest } from ".";
+import { Character } from "./character";
 
-describe("Test of systemUnderTest()", function() {
-  it("Should pass", function() {
-    expect(systemUnderTest()).toEqual(true);
+describe("characters when created", () => {
+
+  it("should have initial health as 1000", () => {
+    const character = new Character(1000);
+    expect(character.health).toEqual(1000);
   });
 });
