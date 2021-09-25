@@ -10,21 +10,24 @@ export class Character {
     this.alive = true;
   }
 
-  damage(damageAmount: number) : number {
-    if(damageAmount > this.health){
-      this.health = 0;
-      this.alive = false;
-    }
-    else {
-      this.health = this.health - damageAmount;
+  damage(damageAmount: number, attacker: Character = null) : number {
+    if(attacker !== this) {
+      if(damageAmount > this.health){
+        this.health = 0;
+        this.alive = false;
+      }
+      else {
+        this.health = this.health - damageAmount;
+      }
     }
     return this.health;
   }
 
-  heal(healAmount: number): number {
-    if(this.alive)
-    {
-      this.health =  this.health + healAmount > 1000 ? 1000 :  this.health + healAmount
+  heal(healAmount: number, healer: Character = null): number {
+    if(healer === this) {
+      if (this.alive) {
+        this.health = this.health + healAmount > 1000 ? 1000 : this.health + healAmount
+      }
     }
     return this.health;
   }
