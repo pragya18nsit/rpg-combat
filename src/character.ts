@@ -2,16 +2,20 @@ export class Character {
   public health: number;
   public level: number;
   public alive: boolean;
+  public maxAttackRange: number;
 
-
-  constructor(health: number, level: number) {
+  constructor(health: number, level: number, fighterType: string) {
     this.health = health;
     this.level = level;
     this.alive = true;
+
+    this.maxAttackRange = this.getAttackRange(fighterType);
   }
 
   isDamagedBy(attacker: Character = null, damage: number) : number {
     if(attacker !== this) {
+      if(this.maxAttackRange === 20 && attacker.maxAttackRange === 2  )
+        return this.health;
       damage = this.getDamageAmount(attacker, damage);
       if(damage > this.health){
         this.health = 0;
@@ -41,5 +45,14 @@ export class Character {
       damageAmount = damage + (damage / 2);
     }
     return damageAmount;
+  }
+
+  private getAttackRange(fighterType: string){
+    if(fighterType === "Melee"){
+      return 2;
+    }
+    else if(fighterType === "Ranged"){
+      return 20;
+    }
   }
 }
