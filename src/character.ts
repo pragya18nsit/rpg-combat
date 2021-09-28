@@ -12,47 +12,41 @@ export class Character {
     this.maxAttackRange = this.getAttackRange(fighterType);
   }
 
-  isDamagedBy(attacker: Character = null, damage: number) : number {
-    if(attacker !== this) {
-      if(this.maxAttackRange === 20 && attacker.maxAttackRange === 2  )
-        return this.health;
-      damage = this.getDamageAmount(attacker, damage);
-      if(damage > this.health){
-        this.health = 0;
-        this.alive = false;
-      }
-      else {
-        this.health = this.health - damage;
-      }
+  isDamagedBy(attacker: Character = null, damage: number)  {
+    if(attacker === this)
+      return;
+    if(this.maxAttackRange === 20 && attacker.maxAttackRange === 2  )
+      return;
+    const damageAmount = this.getDamageAmount(attacker, damage);
+    if(damageAmount > this.health){
+      this.health = 0;
+      this.alive = false;
+      return;
     }
-    return this.health;
+    this.health = this.health - damageAmount;
   }
 
-  isHealedBy(healer: Character = null, heal: number): number {
-    if(healer === this) {
-      if (this.alive) {
-        this.health = this.health + heal > 1000 ? 1000 : this.health + heal
-      }
+  isHealedBy(healer: Character = null, heal: number) {
+    if (healer === this && this.alive) {
+      this.health = this.health + heal > 1000 ? 1000 : this.health + heal
     }
-    return this.health;
   }
 
   private getDamageAmount(attacker: Character, damage: number) {
-    let damageAmount = damage;
     if (this.level - attacker.level >= 5) {
-      damageAmount = damage / 2;
+      return damage / 2;
     } else if (attacker.level - this.level >= 5) {
-      damageAmount = damage + (damage / 2);
+      return  damage + (damage / 2);
     }
-    return damageAmount;
+    return damage;
   }
 
   private getAttackRange(fighterType: string){
-    if(fighterType === "Melee"){
-      return 2;
-    }
-    else if(fighterType === "Ranged"){
-      return 20;
-    }
+    return fighterRanges[fighterType];
   }
+}
+
+enum fighterRanges {
+  Melee = 2,
+  Ranged = 20
 }

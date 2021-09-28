@@ -4,46 +4,66 @@ import * as assert from "assert";
 describe("characters when created", () => {
   const character = new Character(1000, 1, "Melee");
 
-  it("should have initial health as 1000", () => {
+  it("should have initial health as 1000, level as 1 and should be alive", () => {
     expect(character.health).toEqual(1000);
-  });
-
-  it("should have initial level as 1", () => {
     expect(character.level).toEqual(1);
-  });
-
-  it("should be alive", () => {
     expect(character.alive).toEqual(true);
   });
 });
 
 describe("characters when damaged", () => {
 
-  it('should decrease the health', () => {
-    const character = new Character(1000, 1, "Melee");
-    const attacker =  new Character(1000, 1, "Melee");
-    const health = character.isDamagedBy(attacker, 100);
-    expect(health).toEqual(900);
-    expect(character.health).toEqual(900);
-  });
+  const character = new Character(1000, 1, "Melee");
+  const attacker =  new Character(1000, 1, "Melee");
 
-  it('if damage received exceeds current Health, Health becomes 0 and the character dies', () => {
-    const character = new Character(1000, 1, "Melee");
-    const attacker =  new Character(1000, 1, "Melee");
-    const health = character.isDamagedBy(attacker, 1100);
-    expect(health).toEqual(0);
-    expect(character.alive).toEqual(false);
-  });
-
+  it.each`
+    damage          |  expectedHealth         |  isAlive         
+    ${100}          |  ${900}                 |  ${true}
+    ${1100}         |  ${0}                   |  ${false}  
+   
+  `(
+    `should decrease health or character dies if health becomes 0`,
+    async ({ damage, expectedHealth, isAlive }) => {
+      character.isDamagedBy(attacker, damage);
+      expect(character.health).toEqual(expectedHealth);
+      expect(character.alive).toEqual(isAlive);
+    });
 });
 
-describe("characters when healed", () => {
+describe("characters when healed 1", () => {
+
+  let character, attacker;
+  beforeEach(() => {
+    character = new Character(1000, 1, "Melee");
+    attacker = new Character(1000, 1, "Melee");
+  });
+
+  it.each`
+    damage          |  healAmount   |  healer              |  expectedHealth    |  isAlive    
+    ${1100}         |  ${1100}      |  ${null}             |  ${0}              |  ${false}  
+    ${500}          |  ${3000}      |  ${character}        |  ${1000}           |  ${true}    
+   
+  `(
+    `should decrease health or character dies if health becomes 0`,
+    async ({ damage, healAmount, healer, expectedHealth, isAlive }) => {
+
+      character.isDamagedBy(attacker, damage);
+      character.isHealedBy(healer, healAmount);
+      expect(character.alive).toEqual(isAlive);
+      expect(character.health).toEqual(expectedHealth);
+
+    });
+});
+  describe("characters when healed 2", () => {
+
   it("should not heal dead characters", () =>{
     const character = new Character(1000, 1, "Melee");
     const attacker =  new Character(1000, 1, "Melee");
     character.isDamagedBy(attacker, 1100);
     character.isHealedBy(null, 1100);
     expect(character.alive).toEqual(false);
+    expect(character.health).toEqual(0);
+
   });
 
   it("should not exceed health of 1000", () =>{
@@ -51,6 +71,7 @@ describe("characters when healed", () => {
     const attacker =  new Character(1000, 1, "Melee");
     character.isDamagedBy(attacker, 500);
     character.isHealedBy(character, 3000);
+    expect(character.alive).toEqual(true);
     expect(character.health).toEqual(1000);
   });
 
@@ -130,32 +151,20 @@ describe("characters have", ()=> {
   });
 
   describe("Characters must be in range to deal damage to a target.", () => {
-    it("Melee fighters should not be able to deal damage to ranged fighters ", () => {
-      const character = new Character(1000, 1, "Ranged");
-      const attacker = new Character(1000, 1, "Melee");
-      character.isDamagedBy(attacker, 400);
-      expect(character.health).toEqual(1000);
-    });
+    it.each`
+    characterFighterType          |  attackerFighterType         |  expectedHealth         
+    ${"Ranged"}                   |  ${"Melee"}                  |  ${1000}
+    ${"Melee"}                    |  ${"Ranged"}                 |  ${600}  
+    ${"Melee"}                    |  ${"Melee"}                  |  ${600}  
+    ${"Ranged"}                   |  ${"Ranged"}                 |  ${600}  
+  `(
+      `fighters should be able to damage to other fighters according to their range type`,
+      async ({ characterFighterType, attackerFighterType, expectedHealth }) => {
 
-    it("Ranged fighters should be able to damage to Melee fighters ", () => {
-      const character = new Character(1000, 1, "Melee");
-      const attacker = new Character(1000, 1, "Ranged");
-      character.isDamagedBy(attacker, 400);
-      expect(character.health).toEqual(600);
-    });
-
-    it("Melee fighters should be able to damage to Melee fighters ", () => {
-      const character = new Character(1000, 1, "Melee");
-      const attacker = new Character(1000, 1, "Melee");
-      character.isDamagedBy(attacker, 400);
-      expect(character.health).toEqual(600);
-    });
-
-    it("Ranged fighters should be able to damage to Ranged fighters ", () => {
-      const character = new Character(1000, 1, "Ranged");
-      const attacker = new Character(1000, 1, "Ranged");
-      character.isDamagedBy(attacker, 400);
-      expect(character.health).toEqual(600);
-    });
+        const character = new Character(1000, 1, characterFighterType);
+        const attacker = new Character(1000, 1, attackerFighterType);
+        character.isDamagedBy(attacker, 400);
+        expect(character.health).toEqual(expectedHealth);
+      });
   });
 });
